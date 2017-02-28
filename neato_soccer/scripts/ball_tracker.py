@@ -30,8 +30,7 @@ class BallTracker(object):
 #        cv2.setMouseCallback('video_window', self.process_mouse_event)
         cv2.namedWindow('threshold_image')
         cv2.createTrackbar('green lower bound', 'threshold_image', 0, 255, self.set_green_lower_bound)
-        if event == cv2.EVENT_LBUTTONDOWN: 
-            self.should_move = not(self.should_move)
+        
 
     def process_image(self, msg):
         """ Process image messages from ROS and stash them in an attribute
@@ -52,6 +51,8 @@ class BallTracker(object):
                         (0, 0, 0))
         #cv2.imshow('image_info', image_info_window)
         #cv2.waitKey(5)
+	if event == cv2.EVENT_LBUTTONDOWN: 
+            self.should_move = not(self.should_move)
 
     def set_green_lower_bound(self, val):
         """ A callback function to handle the OpenCV slider to select the green lower bound """
@@ -67,9 +68,9 @@ class BallTracker(object):
                 if moments['m00'] != 0:
                     self.center_x, self.center_y = moments['m10']/moments['m00'], moments['m01']/moments['m00']
                 self.center_x = (self.center_x - 0) * (.5 - -.5) / (500 - 0) + -.5
-                self.pub.publish(Twist((1, 0, 0), (0, 0, self.center_x)))
+                self.pub.publish(Twist(linear=Vector3(1, 0, 0), angular=Vector3(0, 0, self.center_x)))
                 cv2.imshow('video_window', self.cv_image)
-        	    cv2.imshow('threshold_image', self.binary_image)
+        	cv2.imshow('threshold_image', self.binary_image)
                 cv2.waitKey(5)
 
             # start out not issuing any motor commands

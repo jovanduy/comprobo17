@@ -25,7 +25,12 @@ class BallTracker(object):
 
         rospy.Subscriber(image_topic, Image, self.process_image)
         self.pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
+        self.blue_lower_bound = 0
         self.green_lower_bound = 0
+        self.red_lower_bound = 0
+        self.h_lower_bound = 0
+        self.s_lower_bound = 0
+        self.v_lower_bound = 0
         cv2.namedWindow('video_window')
         cv2.setMouseCallback('video_window', self.process_mouse_event)
         cv2.namedWindow('threshold_image')
@@ -68,12 +73,13 @@ class BallTracker(object):
                 if moments['m00'] != 0:
                     self.center_x, self.center_y = moments['m10']/moments['m00'], moments['m01']/moments['m00']
                 self.center_x = (self.center_x - 0) * (0.5 - -0.5) / (640 - 0) + -0.5
-                if self.center_x > -.25 and self.center_x < .25:
-                    self.pub.publish(Twist(linear=Vector3(1, 0, 0), angular=Vector3(0, 0, 0)))
-                else:
-                     self.pub.publish(Twist(linear=Vector3(0, 0, 0), angular=Vector3(0, 0, self.center_x)))
+                if self.should_move:
+                    if self.center_x > -.25 and self.center_x < .25:
+                        self.pub.publish(Twist(linear=Vector3(1, 0, 0), angular=Vector3(0, 0, 0)))
+                    else:
+                        self.pub.publish(Twist(linear=Vector3(0, 0, 0), angular=Vector3(0, 0, self.center_x)))
                 cv2.imshow('video_window', self.cv_image)
-        	cv2.imshow('threshold_image', self.binary_image)
+                cv2.imshow('threshold_image', self.binary_image)
                 cv2.waitKey(5)
 
             # start out not issuing any motor commands

@@ -27,7 +27,7 @@ class BallTracker(object):
         self.pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
         self.green_lower_bound = 0
         cv2.namedWindow('video_window')
-#        cv2.setMouseCallback('video_window', self.process_mouse_event)
+        cv2.setMouseCallback('video_window', self.process_mouse_event)
         cv2.namedWindow('threshold_image')
         cv2.createTrackbar('green lower bound', 'threshold_image', 0, 255, self.set_green_lower_bound)
         
@@ -49,8 +49,8 @@ class BallTracker(object):
                         cv2.FONT_HERSHEY_SIMPLEX,
                         1,
                         (0, 0, 0))
-        #cv2.imshow('image_info', image_info_window)
-        #cv2.waitKey(5)
+        cv2.imshow('image_info', image_info_window)
+        cv2.waitKey(5)
 	if event == cv2.EVENT_LBUTTONDOWN: 
             self.should_move = not(self.should_move)
 
@@ -67,8 +67,11 @@ class BallTracker(object):
                 moments = cv2.moments(self.binary_image)
                 if moments['m00'] != 0:
                     self.center_x, self.center_y = moments['m10']/moments['m00'], moments['m01']/moments['m00']
-                self.center_x = (self.center_x - 0) * (.5 - -.5) / (500 - 0) + -.5
-                self.pub.publish(Twist(linear=Vector3(1, 0, 0), angular=Vector3(0, 0, self.center_x)))
+                self.center_x = (self.center_x - 0) * (0.5 - -0.5) / (640 - 0) + -0.5
+                if self.center_x > -.25 and self.center_x < .25:
+                    self.pub.publish(Twist(linear=Vector3(1, 0, 0), angular=Vector3(0, 0, 0)))
+                else:
+                     self.pub.publish(Twist(linear=Vector3(0, 0, 0), angular=Vector3(0, 0, self.center_x)))
                 cv2.imshow('video_window', self.cv_image)
         	cv2.imshow('threshold_image', self.binary_image)
                 cv2.waitKey(5)
